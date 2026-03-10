@@ -14,6 +14,3 @@
  * limitations under the License.
  */
 rootProject.name = "OS"
-//includeBuild("../../public_projects_build_system/GradleUtils")
-//includeBuild("../../public_projects_build_system/GradlePublish")
-//includeBuild("../../public_projects_build_system/VersionUpdate")

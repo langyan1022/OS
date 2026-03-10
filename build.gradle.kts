@@ -1,5 +1,5 @@
 /*
- * Copyright 2026 dorkbox, llc
+ * Copyright 2023 dorkbox, llc
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,45 +14,45 @@
  * limitations under the License.
  */
 
+///////////////////////////////
+//////    PUBLISH TO SONATYPE / MAVEN CENTRAL
+////// TESTING : (to local maven repo) <'publish and release' - 'publishToMavenLocal'>
+////// RELEASE : (to sonatype/maven central), <'publish and release' - 'publishToSonatypeAndRelease'>
+///////////////////////////////
+
 gradle.startParameter.showStacktrace = ShowStacktrace.ALWAYS   // always show the stacktrace!
-gradle.startParameter.warningMode = WarningMode.All
+
 
 plugins {
-    id("com.dorkbox.GradleUtils") version "4.8"
-    id("com.dorkbox.Licensing") version "3.1"
-    id("com.dorkbox.VersionUpdate") version "3.2"
-    id("com.dorkbox.GradlePublish") version "2.2"
+    id("com.dorkbox.GradleUtils") version "3.18"
+    id("com.dorkbox.Licensing") version "2.22"
+    id("com.dorkbox.VersionUpdate") version "2.8"
+    id("com.dorkbox.GradlePublish") version "1.22"
 
-    kotlin("jvm") version "2.3.0"
+    kotlin("jvm") version "1.9.0"
 }
 
+object Extras {
+    // set for the project
+    const val description = "Information about the system, Java runtime, OS, Window Manager, and Desktop Environment."
+    const val group = "com.dorkbox"
+    const val version = "2.0_hotfix_jdk9"
 
-GradleUtils.load {
-    group = "com.dorkbox"
-    id = "OS"
-
-    description = "Information about the system, Java runtime, OS, Window Manager, and Desktop Environment"
-    name = "OS"
-    version = "2.0"
-
-    vendor = "Dorkbox LLC"
-    vendorUrl = "https://dorkbox.com"
-
-    url = "https://git.dorkbox.com/dorkbox/OS"
-
-    issueManagement {
-        url = "${url}/issues"
-        nickname = "Gitea Issues"
-    }
-
-    developer {
-        id = "dorkbox"
-        name = vendor
-        email = "email@dorkbox.com"
-    }
+    // set as project.ext
+    const val name = "OS"
+    const val id = "OS" // this is the maven ID!
+    const val vendor = "Dorkbox LLC"
+    const val vendorUrl = "https://dorkbox.com"
+    const val url = "https://git.dorkbox.com/dorkbox/OS"
 }
+
+///////////////////////////////
+/////  assign 'Extras'
+///////////////////////////////
+GradleUtils.load("$projectDir/../../gradle.properties", Extras)
 GradleUtils.defaults()
-GradleUtils.compileConfiguration(JavaVersion.VERSION_25)
+GradleUtils.compileConfiguration(JavaVersion.VERSION_1_9)
+GradleUtils.jpms(JavaVersion.VERSION_1_9)
 
 
 licensing {
@@ -63,7 +63,46 @@ licensing {
     }
 }
 
+tasks.jar.get().apply {
+    manifest {
+        // https://docs.oracle.com/javase/tutorial/deployment/jar/packageman.html
+        attributes["Name"] = Extras.name
+
+        attributes["Specification-Title"] = Extras.name
+        attributes["Specification-Version"] = Extras.version
+        attributes["Specification-Vendor"] = Extras.vendor
+
+        attributes["Implementation-Title"] = "${Extras.group}.${Extras.id}"
+        attributes["Implementation-Version"] = GradleUtils.now()
+        attributes["Implementation-Vendor"] = Extras.vendor
+    }
+}
 
 dependencies {
-    api("com.dorkbox:Updates:1.3")
+    api("com.dorkbox:Updates:1.1")
+}
+
+
+publishToSonatype {
+    groupId = Extras.group
+    artifactId = Extras.id
+    version = Extras.version
+
+    name = Extras.name
+    description = Extras.description
+    url = Extras.url
+
+    vendor = Extras.vendor
+    vendorUrl = Extras.vendorUrl
+
+    issueManagement {
+        url = "${Extras.url}/issues"
+        nickname = "Gitea Issues"
+    }
+
+    developer {
+        id = "dorkbox"
+        name = Extras.vendor
+        email = "email@dorkbox.com"
+    }
 }
